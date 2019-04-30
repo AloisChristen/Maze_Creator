@@ -1,0 +1,17 @@
+*, *:before, *:after {
+    box-sizing: border-box;
+}
+
+title {
+    align-items:    center;
+    text-align:     center;
+    border:         1px solid black;
+}
+
+#CANVAS {
+    width:  600px;
+    height: 600px;
+    min-width:  600px;
+    min-height: 600px;
+    border: 2px solid black;
+}
