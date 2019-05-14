@@ -100,6 +100,7 @@ MODEL.setup = function () {
     this.cells = [];
     this.cell_rows = CONTROL.rows.value;
     this.cell_cols = CONTROL.cols.value;
+    this.creationSpeed = CONTROL.creationSpeed.value;
 
     let nextCell
     for(let col = 0; col < this.cell_cols; col++){
@@ -210,10 +211,11 @@ CONTROL.setup = function () {
     this.create.onclick = function(){
         MODEL.setup();
         VUE.setup();
-        MODEL.create_dsf(100);
+        MODEL.create_dsf(MODEL.creationSpeed);
     };
     this.rows = document.getElementById("rows");
     this.cols = document.getElementById("cols");
+    this.creationSpeed = document.getElementById("creationSpeed");
 }
 // Algorithm for deep search first
 MODEL.create_dsf = function (nb_steps) {
@@ -305,5 +307,4 @@ CONTROL.setup();
 MODEL.setup();
 VUE.setup();
 // WORK
-MODEL.create_dsf(100);
 VUE.drawGrid();
