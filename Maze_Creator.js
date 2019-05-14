@@ -205,14 +205,13 @@ CONTROL = {
     area: document.getElementById("CONTROL"),
 }
 CONTROL.setup = function () {
-    this.create = document.createElement('button');
-    this.area.appendChild(this.create);
-    this.create.innerHTML = 'Create';
+    this.create = document.getElementById("Create");
     this.create.onclick = function(){
         MODEL.setup();
         VUE.setup();
         MODEL.create_dsf(MODEL.creationSpeed);
     };
+    this.create.focus();
     this.rows = document.getElementById("rows");
     this.cols = document.getElementById("cols");
     this.creationSpeed = document.getElementById("creationSpeed");
@@ -308,3 +307,4 @@ MODEL.setup();
 VUE.setup();
 // WORK
 VUE.drawGrid();
+MODEL.create_dsf(MODEL.creationSpeed);
