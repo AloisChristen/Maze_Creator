@@ -66,7 +66,7 @@ VUE.drawCells = function () {
             }
         }
     }
-    cell = MODEL.dsf.current;
+    cell = MODEL.algo.dsf.current;
     VUE.ctx.fillStyle = VUE.colors.CURRENT; 
     VUE.ctx.fillRect(cell.x * VUE.cell_w, cell.y * VUE.cell_h,
                      VUE.cell_w, VUE.cell_h);
@@ -209,7 +209,7 @@ CONTROL.setup = function () {
     this.create.onclick = function(){
         MODEL.setup();
         VUE.setup();
-        MODEL.create_dsf(MODEL.creationSpeed);
+        MODEL.algo.dsf.create(MODEL.creationSpeed);
     };
     this.create.focus();
     this.rows = document.getElementById("rows");
@@ -217,13 +217,15 @@ CONTROL.setup = function () {
     this.creationSpeed = document.getElementById("creationSpeed");
 }
 // Algorithm for deep search first
-MODEL.create_dsf = function (nb_steps) {
-    MODEL.dsf.current = MODEL.startCell;
-    MODEL.dsf.current.checked = true;
-    MODEL.dsf.stack = [MODEL.dsf.current];
-    MODEL.dsf.loop = setInterval(function () {
-        let stack = MODEL.dsf.stack;
-        let current = MODEL.dsf.current;
+MODEL.algo = {};
+MODEL.algo.dsf = {};
+MODEL.algo.dsf.create = function (nb_steps) {
+    MODEL.algo.dsf.current = MODEL.startCell;
+    MODEL.algo.dsf.current.checked = true;
+    MODEL.algo.dsf.stack = [MODEL.algo.dsf.current];
+    MODEL.algo.dsf.loop = setInterval(function () {
+        let stack = MODEL.algo.dsf.stack;
+        let current = MODEL.algo.dsf.current;
         let next;
         let loopClear = false;
         for(let step = 0; step < nb_steps; step++){
@@ -252,7 +254,7 @@ MODEL.create_dsf = function (nb_steps) {
                 step--;
                 current = stack.pop();
             }
-            MODEL.dsf.current = current;
+            MODEL.algo.dsf.current = current;
         } else {
             loopClear = true;
         }
@@ -261,8 +263,8 @@ MODEL.create_dsf = function (nb_steps) {
         VUE.drawCells();
         VUE.drawWalls();
         if(loopClear){
-            clearInterval(MODEL.dsf.loop);
-            MODEL.solve_bfs(0);
+            clearInterval(MODEL.algo.dsf.loop);
+            MODEL.solve_bfs(10);
         }
     }, 30);
 }
@@ -271,33 +273,52 @@ MODEL.create_dsf = function (nb_steps) {
 MODEL.solve_bfs = function(nbsteps) {
     MODEL.bfs.current = MODEL.startCell;
     MODEL.bfs.queue = [MODEL.bfs.current];
-    let path = [];
-    let current = MODEL.bfs.current;
-    let queue = MODEL.bfs.queue;
-    current.discovered = true;
-    while(queue.length > 0){
-        current = queue.shift();
-        if(current === MODEL.endCell){
+    MODEL.bfs.path = [];
+    MODEL.bfs.loop = setInterval(function(){
+        let steps = nbsteps;
+        let path = MODEL.bfs.path;
+        let current = MODEL.bfs.current;
+        let queue = MODEL.bfs.queue;
+        let endLoop = false;
+        current.discovered = true;
+        while(queue.length > 0 && steps-- >= 0){
+            console.log("Test");
+            current = queue.shift();
+            if(current === MODEL.endCell){
+                endLoop = true;
+                break;
+            }
+            let nextNodes = current.getConnectedNeightboor();
+            nextNodes.forEach(function(node){ 
+                if(!(node.discovered === true)){
+                    node.discovered = true;
+                    node.parentNode = current;
+                    queue.push(node);
+                }
+            });
+            path.splice(0,path.length);
             path.unshift(current);
             while(current.parentNode != null){
                 current = current.parentNode;
                 path.unshift(current);
             }
-            break;
+            VUE.drawPath(MODEL.bfs.path);
         }
-        
-        let nextNodes = current.getConnectedNeightboor();
-        nextNodes.forEach(function(node){ 
-            if(!(node.discovered === true)){
-                node.discovered = true;
-                node.parentNode = current;
-                queue.push(node);
-            }
-        });
-    }
-    VUE.drawPath(path);
-    VUE.drawWalls();
-    //MODEL.bfs.loop = setInterval(function(){}, 30);
+        path.splice(0,path.length);
+        path.unshift(current);
+        while(current.parentNode != null){
+            current = current.parentNode;
+            path.unshift(current);
+        }
+        MODEL.bfs.current = current;
+        if(endLoop){
+            clearInterval(MODEL.bfs.loop);
+            console.log("clear loop");
+        }
+        VUE.drawCells();
+        VUE.drawPath(MODEL.bfs.path);
+        VUE.drawWalls();
+    }, 30);
 
 
 }
@@ -307,4 +328,4 @@ MODEL.setup();
 VUE.setup();
 // WORK
 VUE.drawGrid();
-MODEL.create_dsf(MODEL.creationSpeed);
+MODEL.algo.dsf.create(MODEL.creationSpeed);
