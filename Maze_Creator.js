@@ -18,7 +18,7 @@ VUE.setup = function () {
     VUE.colors = {
         NOTHING: 'rgba(255,255,255,1)',
         WALL: 'rgba(255,0,255,1)',
-        CHECKED: 'rgba(0,255,255,0.5)',
+        CHECKED: 'rgba(0,255,255,0.1)',
         CURRENT: 'rgba(0,255,255,1)',
         GRID: 'rgba(0,0,0,0.2)',
         PATH: 'rgba(0,60,160,1)',
@@ -145,7 +145,7 @@ function CELL(_x, _y){
 CELL.prototype.getFreeNeightboor = function() {
     let listOfFree = [];
     this.neightboor.forEach(function(element){
-        if (element != null && (!element.checked || Math.random() < 0.0005)){
+        if (element != null && (!element.checked || Math.random() < 0.01)){
             listOfFree.push(element);
         }
     })
@@ -264,7 +264,7 @@ MODEL.algo.dsf.create = function (nb_steps) {
         VUE.drawWalls();
         if(loopClear){
             clearInterval(MODEL.algo.dsf.loop);
-            MODEL.solve_bfs(10);
+            MODEL.solve_bfs(3);
         }
     }, 30);
 }
@@ -275,43 +275,55 @@ MODEL.solve_bfs = function(nbsteps) {
     MODEL.bfs.queue = [MODEL.bfs.current];
     MODEL.bfs.path = [];
     MODEL.bfs.loop = setInterval(function(){
+        console.log("Interval");
         let steps = nbsteps;
         let path = MODEL.bfs.path;
         let current = MODEL.bfs.current;
         let queue = MODEL.bfs.queue;
+        let firstNode, lastNode;
         let endLoop = false;
         current.discovered = true;
-        while(queue.length > 0 && steps-- >= 0){
-            console.log("Test");
-            current = queue.shift();
-            if(current === MODEL.endCell){
-                endLoop = true;
-                break;
-            }
-            let nextNodes = current.getConnectedNeightboor();
-            nextNodes.forEach(function(node){ 
-                if(!(node.discovered === true)){
-                    node.discovered = true;
-                    node.parentNode = current;
-                    queue.push(node);
+        for(let i = 0; i < steps; i++){
+            console.log("For loop");
+            firstNode = null;
+            console.log("FirstNode :", firstNode);
+            while(queue.length > 0 && current != firstNode){
+                current = queue.shift();
+                if(current === MODEL.endCell){
+                    endLoop = true;
+                    break;
                 }
-            });
-            path.splice(0,path.length);
-            path.unshift(current);
-            while(current.parentNode != null){
-                current = current.parentNode;
-                path.unshift(current);
+                let nextNodes = current.getConnectedNeightboor();
+                nextNodes.forEach(function(node){ 
+                    if(!(node.discovered === true)){
+                        node.discovered = true;
+                        node.parentNode = current;
+                        queue.push(node);
+                        if(!firstNode){
+                            firstNode = node;
+                        }
+                    }
+                });
+                path.splice(0,path.length);
+                lastNode = current;
+                path.unshift(lastNode);
+                while(lastNode.parentNode != null){
+                    lastNode = lastNode.parentNode;
+                    path.unshift(lastNode);
+                }
+                VUE.drawPath(MODEL.bfs.path);
             }
-            VUE.drawPath(MODEL.bfs.path);
         }
         path.splice(0,path.length);
-        path.unshift(current);
-        while(current.parentNode != null){
-            current = current.parentNode;
-            path.unshift(current);
+        lastNode = current;
+        path.unshift(lastNode);
+        while(lastNode.parentNode != null){
+            lastNode = lastNode.parentNode;
+            path.unshift(lastNode);
         }
         MODEL.bfs.current = current;
         if(endLoop){
+            VUE.drawCells();
             clearInterval(MODEL.bfs.loop);
             console.log("clear loop");
         }
